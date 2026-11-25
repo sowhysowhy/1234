@@ -18,7 +18,7 @@ export const institutions = [
  {id:'yamanaka',name:'石川縣立山中漆器產業技術中心',city:'加賀市',craft:'lacquer',about:'日本重要之山中漆器研修設施。',study:'轆轤車削、蒔繪及相關漆藝研修。',url:'https://yamanaka696.org/'},
  {id:'kinzan',name:'錦山窯（株式会社錦山窯）',city:'小松市',craft:'kutani',about:'九谷燒重要窯元，設有展示空間「嘸旦－MUTAN－」。',study:'展示空間導覽、品牌經營觀察與金彩技法相關交流。',url:'https://kinzangama.com/'},
 ]
-type Day = {day:number;date:string;phase:string;title:string;crafts:string[];hosts:string[];activities:string[];goal?:string}
+type Day = {day:number;date:string;phase:string;title:string;crafts:string[];hosts:string[];activities:string[];goal?:string;adjusted?:boolean}
 export const days: Day[] = [
  {day:1,date:'06/20',phase:'week1',title:'從臺灣啟程，抵達加賀',crafts:[],hosts:[],activities:['臺灣出發，抵達小松機場後前往加賀地區，辦理飯店入住。']},
  {day:2,date:'06/21',phase:'week1',title:'九谷燒的百年色彩體系',crafts:['kutani'],hosts:[],activities:['見學能美市九谷燒美術館・五彩館及淺藏五十吉紀念館。','參觀石川縣九谷燒技術中心與技術研修所。'],goal:'細察九谷五彩與巨匠作品的美學，了解無鉛和繪具的科學研究，以及公設體系如何支援年輕作家自立。'},
@@ -30,14 +30,19 @@ export const days: Day[] = [
  {day:8,date:'06/27',phase:'week2',title:'自主調查與第一週紀錄',crafts:[],hosts:[],activities:['自由時間，可於金澤市內自主調查或休息調整。','整理第一週學習內容，撰寫報告及製作影片初稿。']},
  {day:9,date:'06/28',phase:'week2',title:'傳統工藝 36 業種與現代市場',crafts:[],hosts:[],activities:['在石川縣立傳統工藝產業館（いしかわ生活工芸ミュージアム）參加特別講座及專業導覽。','參加金澤・Craft 廣坂（クラフト広坂）專業導覽。'],goal:'了解石川與金澤傳統工藝的基礎知識、色彩體系及現代市場流通。'},
  {day:10,date:'06/29',phase:'week2',title:'工藝教育與公設育成',crafts:[],hosts:[],activities:['與金澤美術工藝大學工藝科進行技術交流。','參加金澤卯辰山工藝工房專業導覽與工藝產業研究。'],goal:'驗證技術語言化、高等工藝教育與年輕作家獨立支援設施。透過館方導覽觀察工藝史、材料應用、品牌轉譯與地方創生，作為成果報告的比較素材。'},
- {day:11,date:'06/30',phase:'week2',title:'金箔製造科技與品質管理',crafts:['gold'],hosts:['hakuichi'],activities:['於株式會社箔一參加總店專業導覽及工廠研習。'],goal:'學習萬分之一毫米金箔的製造流程、現代品質管理系統與商品化進程。'},
- {day:12,date:'07/01',phase:'week2',title:'傳統工藝與觀光品牌',crafts:['gold'],hosts:[],activities:['探訪東山・東茶屋街與安江金箔工藝館。'],goal:'以東茶屋街為例，理解傳統工藝如何轉化為商業及觀光內容。'},
+ {day:11,date:'06/30',phase:'week2',title:'傳統工藝 × 觀光之品牌昇華',crafts:['gold'],hosts:[],activities:['走訪東山・東茶屋街區域（工藝 × 觀光）。','訪問安江金箔工藝館。'],goal:'以東茶屋街為模型，學習傳統工藝如何被設計為具魅力的商業及觀光內容。',adjusted:true},
+ {day:12,date:'07/01',phase:'week2',title:'金箔製造科技與品質管理',crafts:['gold'],hosts:['hakuichi'],activities:['參加箔一總店專業導覽。','於株式會社箔一工廠研習。'],goal:'學習金箔製造工藝流程、現代化品質管理系統及商品化進程。',adjusted:true},
  {day:13,date:'07/02',phase:'week2',title:'加賀象嵌技法與社群傳承',crafts:['inlay'],hosts:['soukei'],activities:['參與宗桂會館加賀象嵌專門美術館的專業導覽。','與加賀象嵌作家工坊交流。'],goal:'調查加賀象嵌的金屬加飾技法，以及在地職人之間的技術傳承系統。'},
  {day:14,date:'07/03',phase:'week2',title:'自主調查與成果資料整理',crafts:[],hosts:[],activities:['自由時間，可整理成果發表的個人資料，或於金澤市內自主調查。'],goal:'為第 16 日的成果發表準備素材。'},
  {day:15,date:'07/04',phase:'final',title:'成果發表準備及業師面談',crafts:[],hosts:[],activities:['準備成果發表並與業師面談。'],goal:'彙整翌日的簡報資料、整理學習內容並提交報告及影片初稿。'},
  {day:16,date:'07/05',phase:'final',title:'臺日青年職人座談及成果發表',crafts:[],hosts:[],activities:['與石川縣傳統青年會議座談。','參加成果發表會。'],goal:'以 15 日研修累積的資料發表成果，與在地青年職人討論實際課題。'},
  {day:17,date:'07/06',phase:'final',title:'從小松機場返回臺灣',crafts:[],hosts:[],activities:['自金澤市內移動至小松機場，返回臺灣。']},
 ]
+export const itineraryChange = {
+ title:'行程異動說明',
+ text:'依本次課堂情境，株式會社箔一工廠於 6/30（三）進行年度設備例行檢修，當天暫停見習與研習，7/01（四）恢復接待。東茶屋街與安江金箔工藝館於 6/30 正常開放，因此兩天行程對調。',
+ sourceNote:'網站行程依本次課堂情境調整。原始官方簡章 PDF 保留原訂行程。',
+}
 export const requirements = [
  '具中華民國國籍，年齡 18 至 30 歲。','能全程參與海外見習，並配合成果紀錄及社群宣傳。',
  '願意參與行前培訓與行前語言加強課程。','具備基礎日語會話與聽力（約 JLPT N4／CEFR A2 以上），或具備良好英語溝通能力（約 CEFR B1）。',

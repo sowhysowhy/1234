@@ -95,6 +95,9 @@ svg{flex-shrink:0}
 .host-card h3 button{display:flex;align-items:center;gap:.45rem;min-height:44px;text-align:left;color:var(--navy);overflow-wrap:anywhere}
 .host-links{margin-top:auto;padding-top:.5rem;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:.3rem;color:var(--navy)}
 .host-links>*{display:flex;align-items:center;gap:.36rem;min-height:44px}
+.itinerary-change{border-left:2px solid var(--gold);background:var(--surface);padding:1rem;margin:0 0 1.5rem}
+.itinerary-change h3{color:var(--navy);font-size:1.05rem}
+.itinerary-change p:last-child{margin-bottom:0}
 .itinerary-filters{display:flex;flex-wrap:wrap;column-gap:1.2rem}
 .results{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 1rem}
 .results p{margin:0;color:var(--navy);font-weight:650}
@@ -104,6 +107,9 @@ svg{flex-shrink:0}
 .timeline-entry::before{content:"";position:absolute;width:7px;height:7px;left:-.89rem;top:1.95rem;border-radius:50%;background:#846b36}
 .day-trigger{width:100%;display:grid;grid-template-columns:3.15rem minmax(0,1fr) auto;gap:.55rem;align-items:center;text-align:left;padding:.6rem;background:var(--surface);border:1px solid var(--line);color:var(--navy);font-weight:700;min-height:66px;overflow-wrap:anywhere}
 .day-trigger[aria-expanded=true]{background:var(--navy);border-color:var(--navy);color:var(--surface)}
+.day-adjusted{display:table;margin:.35rem 0 0;padding:.1rem .4rem;border:1px solid var(--line);color:var(--red);font-size:.75rem;font-weight:650;line-height:1.5}
+.day-details .day-adjusted{margin-bottom:.75rem}
+.day-trigger[aria-expanded=true] .day-adjusted{border-color:#d6bc83;color:#f1dbab}
 .day-date small,.day-date strong{display:block;white-space:nowrap}
 .day-date small{font-size:.64rem;letter-spacing:.09em}
 .day-date strong{font:700 1.1rem/1.2 Georgia,serif}
@@ -144,6 +150,7 @@ blockquote{font:700 1.12rem/1.8 var(--serif);border-left:3px solid var(--gold);p
 .source{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:2rem;padding:1rem;background:var(--surface);border:1px solid var(--line)}
 .source>div:first-child{display:flex;gap:.55rem;align-items:center}
 .source h3{margin:0}
+.source-note{flex-basis:100%;margin:0}
 footer{padding-block:2rem calc(2rem + env(safe-area-inset-bottom));background:var(--navy);color:#fbf2e3}
 footer .brand{color:inherit;flex-wrap:wrap}
 footer p{max-width:52rem}

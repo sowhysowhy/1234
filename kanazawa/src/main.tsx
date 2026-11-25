@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { ReactNode } from 'react'
 import { ArrowDown, ArrowDownToLine, ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, CircleCheck, Compass, FileText, Hammer, Landmark, MapPin, Menu, Palette, X } from 'lucide-react'
-import { budget, crafts, days, faq, institutions, preferences, program, requirements, training } from './data'
+import { budget, crafts, days, faq, institutions, itineraryChange, preferences, program, requirements, training } from './data'
 import '@fontsource/noto-serif-tc/700.css'
 import '@fontsource/noto-sans-tc/400.css'
 import './style.css'
@@ -55,6 +55,7 @@ function DayDetails({day,onHost}: {day:Day;onHost:(host:Host)=>void}) {
  return <div className="day-details">
   <p className="eyebrow">DAY {dayNumber(day.day)} · {day.date}</p>
   <h3>{day.title}</h3>
+  {day.adjusted && <p className="day-adjusted">行程已調整</p>}
   <ul>{day.activities.map(activity => <li key={activity}>{activity}</li>)}</ul>
   {day.goal && <div className="goal"><strong>學習目的</strong><p>{day.goal}</p></div>}
   {day.hosts.map(id => {
@@ -150,13 +151,18 @@ function App() {
    </section>
    <section id="itinerary" className="section itinerary"><div className="wrap">
     <Heading label="17-DAY ITINERARY" title="十七天研修行程">2027 年 6 月 20 日至 7 月 6 日。所有行程將視實際情況調整。</Heading>
+    <aside className="itinerary-change" aria-labelledby="itinerary-change-title">
+     <h3 id="itinerary-change-title">{itineraryChange.title}</h3>
+     <p>{itineraryChange.text}</p>
+     <p className="muted">{itineraryChange.sourceNote}</p>
+    </aside>
     <div className="itinerary-filters"><Filters label="行程階段" options={phases} current={phase} onChange={v=>filterDays(v,dayFilter)}/><Filters label="行程工藝類別" options={craftOptions} current={dayFilter} onChange={v=>filterDays(phase,v)}/></div>
     <div className="results"><p aria-live="polite">{phases.find(p=>p[0]===phase)?.[1]} · {craftOptions.find(p=>p[0]===dayFilter)?.[1]} · {filtered.length} 天</p>
      <div className="actions"><button className="button outline" disabled={!filtered.length} onClick={()=>setOpenDays(filtered.map(d=>d.day))}>展開全部</button><button className="button outline" disabled={!expanded.length} onClick={()=>setOpenDays([])}>收合全部</button></div>
     </div>
     {filtered.length ? <div className="timeline">
      <div className="timeline-days">{filtered.map(d=><div className="timeline-entry" key={d.day} id={`day-${d.day}`}>
-      <button aria-expanded={openDays.includes(d.day)} aria-controls={`content-${d.day} desktop-content-${d.day}`} className="day-trigger" onClick={()=>setOpenDays(old=>old.includes(d.day)?old.filter(n=>n!==d.day):[...old,d.day])}><span className="day-date"><small>DAY {dayNumber(d.day)}</small><strong>{d.date}</strong></span><span>{d.title}</span><ChevronDown size={17}/></button>
+      <button aria-expanded={openDays.includes(d.day)} aria-controls={`content-${d.day} desktop-content-${d.day}`} className="day-trigger" onClick={()=>setOpenDays(old=>old.includes(d.day)?old.filter(n=>n!==d.day):[...old,d.day])}><span className="day-date"><small>DAY {dayNumber(d.day)}</small><strong>{d.date}</strong></span><span>{d.title}{d.adjusted && <span className="day-adjusted">行程已調整</span>}</span><ChevronDown size={17}/></button>
       <div className="mobile-detail" id={'content-'+d.day} hidden={!openDays.includes(d.day)}><DayDetails day={d} onHost={setHost}/></div>
      </div>)}</div>
      <div className="desktop-details" aria-label="已展開行程" hidden={!expanded.length}>{filtered.map(d=><div key={d.day} id={'desktop-content-'+d.day} hidden={!openDays.includes(d.day)}><DayDetails day={d} onHost={setHost}/></div>)}</div>
@@ -183,7 +189,7 @@ function App() {
    </section>
    <section id="faq" className="wrap section faq"><Heading label="INFORMATION & SOURCE" title="注意事項與資料來源"/>
     {faq.map(([question,answer])=><details key={question}><summary>{question}<ChevronDown size={18}/></summary><p>{answer}</p></details>)}
-    <div className="source"><div><FileText/><h3>《M-2-8 金澤職人夢》原始簡章</h3></div><div className="actions"><a className="button outline" href={source} target="_blank" rel="noopener noreferrer">開啟 PDF<ArrowUpRight size={16}/></a><a className="button primary" href={source} download="M-2-8_金澤職人夢.pdf">下載 PDF<ArrowDownToLine size={16}/></a></div></div>
+    <div className="source"><div><FileText/><h3>《M-2-8 金澤職人夢》原始簡章</h3></div><div className="actions"><a className="button outline" href={source} target="_blank" rel="noopener noreferrer">開啟 PDF<ArrowUpRight size={16}/></a><a className="button primary" href={source} download="M-2-8_金澤職人夢.pdf">下載 PDF<ArrowDownToLine size={16}/></a></div><p className="source-note muted">{itineraryChange.sourceNote}</p></div>
    </section>
   </main>
   <footer><div className="wrap"><div className="brand"><CircleCheck size={21}/>{program.title} <small>KANAZAWA CRAFT JOURNEY</small></div><p>本網站為非官方資訊整理與探索頁面，內容依據青年百億海外圓夢基金計畫－海外翱翔組《M-2-8 金澤職人夢》簡章整理。實際內容以教育部青年發展署及合作單位公告為準。</p><a href="#top">返回頁首 ↑</a></div></footer>
