@@ -3,11 +3,13 @@ import { createRoot } from 'react-dom/client'
 import type { ReactNode } from 'react'
 import { ArrowDown, ArrowDownToLine, ArrowRight, ArrowUpRight, CalendarDays, ChevronDown, CircleCheck, Compass, FileText, Hammer, Landmark, MapPin, Menu, Palette, X } from 'lucide-react'
 import { budget, crafts, days, faq, institutions, itineraryChange, preferences, program, requirements, training } from './data'
+import { dayLocationNotes, dayPlaces, mapsUrl, places } from './places'
+import { ExpenseTracker, PreparationChecklist } from './tripTools'
 import '@fontsource/noto-serif-tc/700.css'
 import '@fontsource/noto-sans-tc/400.css'
 import './style.css'
 
-const nav = [['overview','計畫總覽'],['crafts','工藝探索'],['institutions','見習機構'],['itinerary','研修行程'],['eligibility','資格檢核']]
+const nav = [['overview','計畫總覽'],['crafts','工藝探索'],['institutions','見習機構'],['itinerary','每日行程'],['places','景點探索'],['preparation','行前清單'],['expenses','旅程記帳'],['eligibility','資格檢核']]
 const phases = [['all','全部行程'],['week1','第一週'],['week2','第二週'],['final','成果階段']]
 const craftOptions = [['all','全部工藝'], ...crafts.map(c => [c.id,c.name])]
 const craftName = (id: string) => crafts.find(c => c.id === id)?.name
@@ -51,17 +53,59 @@ function Eligibility() {
  </>
 }
 
+function PlaceCard({id}: {id:string}) {
+ const place = places[id]
+ return <article className="place-card">
+  <p className="eyebrow"><MapPin size={14}/>{place.city}</p>
+  <h4>{place.name}</h4>
+  <p className="muted" lang="ja">{place.japanese}</p>
+  <p>{place.description}</p>
+  <div className="actions">
+   <a className="button outline" href={mapsUrl(place)} target="_blank" rel="noopener noreferrer" aria-label={place.name+' Google Maps'}><MapPin size={16}/>Google Maps</a>
+   {place.url && <a className="text-button" href={place.url} target="_blank" rel="noopener noreferrer">官方網站<ArrowUpRight size={15}/></a>}
+  </div>
+ </article>
+}
+
+function DatePicker({selected,onPick,onHost}: {selected:number;onPick:(day:number)=>void;onHost:(host:Host)=>void}) {
+ const strip = useRef<HTMLDivElement>(null)
+ const day = days[selected-1]
+ useEffect(()=>{
+  const container = strip.current
+  const current = container?.querySelector<HTMLElement>('[aria-current="date"]')
+  if (!container || !current) return
+  const offset = current.getBoundingClientRect().left-container.getBoundingClientRect().left
+  if (offset<0 || offset+current.offsetWidth>container.clientWidth) {
+   container.scrollLeft += offset-(container.clientWidth-current.offsetWidth)/2
+  }
+ },[selected])
+ return <section className="date-picker" aria-labelledby="date-picker-title">
+  <h3 id="date-picker-title">依日期查看完整行程</h3>
+  <div className="date-strip" ref={strip} role="group" aria-label="選擇日期">
+   {days.map(item=><button key={item.day} type="button" onClick={()=>onPick(item.day)} aria-current={item.day===selected?'date':undefined} aria-controls="selected-day"><small>DAY {dayNumber(item.day)}</small><span>{item.date}</span></button>)}
+  </div>
+  <div className="date-controls">
+   <button className="button outline" type="button" disabled={selected===1} onClick={()=>onPick(selected-1)}>上一天</button>
+   <p aria-live="polite">目前選擇 {day.date}</p>
+   <button className="button outline" type="button" disabled={selected===days.length} onClick={()=>onPick(selected+1)}>下一天</button>
+  </div>
+  <div id="selected-day"><DayDetails day={day} onHost={onHost}/></div>
+ </section>
+}
+
 function DayDetails({day,onHost}: {day:Day;onHost:(host:Host)=>void}) {
  return <div className="day-details">
   <p className="eyebrow">DAY {dayNumber(day.day)} · {day.date}</p>
   <h3>{day.title}</h3>
   {day.adjusted && <p className="day-adjusted">行程已調整</p>}
   <ul>{day.activities.map(activity => <li key={activity}>{activity}</li>)}</ul>
-  {day.goal && <div className="goal"><strong>學習目的</strong><p>{day.goal}</p></div>}
+  <div className="goal"><strong>學習目的</strong><p>{day.goal ?? '簡章未另列當日學習目的。'}</p></div>
   {day.hosts.map(id => {
     const host = institutions.find(item => item.id === id)
     return host && <button className="text-button" key={id} onClick={()=>onHost(host)}>{host.name}<ArrowUpRight size={16}/></button>
   })}
+  {dayPlaces[day.day] && <div className="daily-places"><h4>當日景點及機構</h4><div className="place-grid">{dayPlaces[day.day].map(id=><PlaceCard key={id} id={id}/>)}</div></div>}
+  {dayLocationNotes[day.day] && <p className="muted">{dayLocationNotes[day.day]}</p>}
   <p className="muted note">將視實際情況調整</p>
  </div>
 }
@@ -74,6 +118,7 @@ function App() {
  const dialog = useRef<HTMLDialogElement>(null)
  const [phase,setPhase] = useState('all')
  const [dayFilter,setDayFilter] = useState('all')
+ const [selectedDay,setSelectedDay] = useState(1)
  const [openDays,setOpenDays] = useState<number[]>([1])
  const [fund,setFund] = useState('personal')
  const filtered = days.filter(d => (phase==='all'||d.phase===phase) && (dayFilter==='all'||d.crafts.includes(dayFilter)))
@@ -84,6 +129,7 @@ function App() {
    setOpenDays(first ? [first.day] : [])
  }
  function visitDay(day:number) {
+   setSelectedDay(day)
    setPhase('all'); setDayFilter('all'); setOpenDays([day])
    requestAnimationFrame(() => {
      const trigger = document.querySelector<HTMLButtonElement>('#day-' + day + ' button')
@@ -98,7 +144,7 @@ function App() {
   <header className="site-header"><div className="wrap header-inner">
    <a href="#top" className="brand" onClick={()=>setMenu(false)}><span className="brand-mark" aria-hidden="true"><Compass size={22}/></span><span>金澤職人夢<small>KANAZAWA CRAFT JOURNEY</small></span></a>
    <button type="button" className="menu-button" aria-label={menu?'關閉選單':'開啟選單'} aria-expanded={menu} aria-controls="navigation" onClick={()=>setMenu(v=>!v)}>{menu?<X/>:<Menu/>}</button>
-   <nav onKeyDown={e=>{if(e.key==='Escape'){setMenu(false);document.querySelector<HTMLButtonElement>('.menu-button')?.focus()}}} id="navigation" className={menu?'nav is-open':'nav'} aria-label="主導覽">{nav.map(([id,label])=><a key={id} href={'#'+id} onClick={()=>setMenu(false)}>{label}</a>)}</nav>
+   <nav onKeyDown={e=>{if(e.key==='Escape'){setMenu(false);document.querySelector<HTMLButtonElement>('.menu-button')?.focus()}}} id="navigation" className={menu?'nav is-open':'nav'} aria-label="主導覽">{nav.map(([id,label])=><a key={id} href={'#'+id} onClick={()=>setMenu(false)}>{label}</a>)}<a className="nav-pdf" href={source} target="_blank" rel="noopener noreferrer" onClick={()=>setMenu(false)}>原始簡章<ArrowUpRight size={14}/></a></nav>
    <a className="header-pdf" href={source} target="_blank" rel="noopener noreferrer"><FileText size={16}/>原始簡章<ArrowUpRight size={13}/></a>
   </div></header>
   <main id="top">
@@ -156,6 +202,8 @@ function App() {
      <p>{itineraryChange.text}</p>
      <p className="muted">{itineraryChange.sourceNote}</p>
     </aside>
+    <DatePicker selected={selectedDay} onPick={setSelectedDay} onHost={setHost}/>
+    <h3>行程列表與篩選</h3>
     <div className="itinerary-filters"><Filters label="行程階段" options={phases} current={phase} onChange={v=>filterDays(v,dayFilter)}/><Filters label="行程工藝類別" options={craftOptions} current={dayFilter} onChange={v=>filterDays(phase,v)}/></div>
     <div className="results"><p aria-live="polite">{phases.find(p=>p[0]===phase)?.[1]} · {craftOptions.find(p=>p[0]===dayFilter)?.[1]} · {filtered.length} 天</p>
      <div className="actions"><button className="button outline" disabled={!filtered.length} onClick={()=>setOpenDays(filtered.map(d=>d.day))}>展開全部</button><button className="button outline" disabled={!expanded.length} onClick={()=>setOpenDays([])}>收合全部</button></div>
@@ -168,6 +216,10 @@ function App() {
      <div className="desktop-details" aria-label="已展開行程" hidden={!expanded.length}>{filtered.map(d=><div key={d.day} id={'desktop-content-'+d.day} hidden={!openDays.includes(d.day)}><DayDetails day={d} onHost={setHost}/></div>)}</div>
     </div> : <p className="empty">此階段沒有符合工藝篩選的行程。</p>}
    </div></section>
+   <section id="places" className="wrap section">
+    <Heading label="PLACES TO EXPLORE" title="景點探索">依參訪順序探索已知地點。地圖以日文地名與城市搜尋，集合地點以主辦單位通知為準。</Heading>
+    <div className="place-grid">{[...new Set(days.flatMap(day=>dayPlaces[day.day] ?? []))].map(id=><PlaceCard key={id} id={id}/>)}</div>
+   </section>
    <section id="eligibility" className="section wrap"><Heading label="ELIGIBILITY" title="申請資格自我檢核">逐項確認必要條件，再看看自己符合哪些優先條件。</Heading><Eligibility/></section>
    <section id="budget" className="section budget"><div className="wrap">
     <Heading label="BUDGET" title="經費規劃">獎勵金總經費包含合作單位辦理項目及青年自理項目。</Heading>
@@ -187,6 +239,14 @@ function App() {
     <div className="training-grid">{training.map(t=><article key={t.title}><p className="eyebrow">{t.when}</p><h3>{t.title}</h3><p>{t.text}</p></article>)}</div>
     <p className="notice">無法參加行前培訓視同放棄錄取資格。實際場地與時間將於錄取名單確定後個別通知。</p>
    </section>
+   <section id="preparation" className="wrap section">
+    <Heading label="TRIP PREPARATION" title="行前準備清單"/>
+    <PreparationChecklist/>
+   </section>
+   <section id="expenses" className="section itinerary"><div className="wrap">
+    <Heading label="TRIP EXPENSES" title="旅程記帳"/>
+    <ExpenseTracker/>
+   </div></section>
    <section id="faq" className="wrap section faq"><Heading label="INFORMATION & SOURCE" title="注意事項與資料來源"/>
     {faq.map(([question,answer])=><details key={question}><summary>{question}<ChevronDown size={18}/></summary><p>{answer}</p></details>)}
     <div className="source"><div><FileText/><h3>《M-2-8 金澤職人夢》原始簡章</h3></div><div className="actions"><a className="button outline" href={source} target="_blank" rel="noopener noreferrer">開啟 PDF<ArrowUpRight size={16}/></a><a className="button primary" href={source} download="M-2-8_金澤職人夢.pdf">下載 PDF<ArrowDownToLine size={16}/></a></div><p className="source-note muted">{itineraryChange.sourceNote}</p></div>
